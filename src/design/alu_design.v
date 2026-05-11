@@ -1,524 +1,830 @@
-module alu2 #(parameter N=8)(
-input [N-1:0] opa,
-input [N-1:0] opb,
-input cin,
-input clk,
-input rst,
-input ce,
-input mode,
-input [1:0] inp_valid,
-input [(N/2)-1:0] cmd,
-output reg [2*N-1:0] res,
-output reg oflow,cout,g,e,l,err
-);
+timescale 1ns / 1ps
 
-reg [1:0] cnt;
-reg [N-1:0] tempa,tempb;
-reg rep=1'b0;
-reg [2*N-1:0] temp;
+//////////////////////////////////////////////////////////////////////////////////
 
-always @(posedge clk or posedge rst) begin
-    if(rst) begin
-        temp <= {2*N{1'b0}};
-        res<=0;
-        oflow <= 1'b0;
-        cout <= 1'b0;
-        g <= 1'b0;
-        e <= 1'b0;
-        l <= 1'b0;
-        err <= 1'b0;
-        cnt <= 2'b00;
-    end
-    else begin
+// Company: 
 
-        if(!ce) begin
-           temp<= {2*N{1'b0}};
-           res<=temp;
-          oflow <= 1'b0;
-                     cout <= 1'b0;
-                      g <= 1'b0;
-                     e <= 1'b0;
-                     l <= 1'b0;
-                      err <= 1'b0;
+// Engineer: 
+
+// 
+
+// Create Date: 05/04/2026 02:29:27 PM
+
+// Design Name: 
+
+// Module Name: alu_1
+
+// Project Name: 
+
+// Target Devices: 
+
+// Tool Versions: 
+
+// Description: 
+
+// 
+
+// Dependencies: 
+
+// 
+
+// Revision:
+
+// Revision 0.01 - File Created
+
+// Additional Comments:
+
+// 
+
+//////////////////////////////////////////////////////////////////////////////////
+ 
+ 
+module alu_1 #(parameter width =4)(
+
+    input clk,
+
+    input rst,
+
+    input [1:0] inp_valid,
+
+    input mode,ce,cin,input [width-1:0] opa,opb,input [3:0]cmd,
+
+    output reg oflow,cout,g,l,e,err,output reg [2*width-1:0]res
+
+    );
+
+wire signed [width-1:0] a,b;  
+
+reg[1:0]count,count_1;
+
+reg [width-1:0]opa_1,opb_1;
+
+reg [2*width-1:0]temp;
+
+reg signed [width:0] diff;
+
+reg signed [width:0] sum;
+
+reg [2*width-1:0] temp_res;
+
+reg temp_cout,temp_oflow;
+
+reg temp_g,temp_e,temp_l,temp_err;
+
+    always@(posedge clk or posedge rst)
+
+    begin
+
+      if(rst)
+
+      count<=2'b0;
+
+      else begin
+
+      if(cmd==4'd9&&inp_valid==3) begin
+
+        if(count<2)
+
+        count<=count+1;
+
+        else
+
+        count<=2'b0;
+
         end
 
-        else begin
+      else
 
-            if(mode) begin
+      count<=2'b0;   
 
-                if(cmd != 4'd9) begin
-                    cnt <= 2'b00;
+    end
+
+    end
+
+   always@(posedge clk or posedge rst)
+
+    begin
+
+      if(rst)
+
+      count_1<=2'b0;
+
+      else begin
+
+      if(cmd==4'd10&&inp_valid==3) begin
+
+        if(count_1<2)
+
+          count_1<=count_1+1;
+
+        else 
+
+         count_1<=2'b0;
+
+        end 
+
+      else
+
+      count_1<=2'b0;   
+
+    end
+
+    end 
+
+    always @(posedge clk or posedge rst)
+
+    begin
+
+    if(rst) begin
+
+        res <= {2*width{1'b0}};
+
+        cout <= 1'b0;
+
+        oflow <= 1'b0;
+
+        g <= 1'b0;
+
+        l <= 1'b0;
+
+        e <= 1'b0;
+
+        err <= 1'b0;
+
+    end
+
+    else if(ce) begin
+
+        res <= temp_res;
+
+        cout <= temp_cout;
+
+        oflow <= temp_oflow;
+
+        g <= temp_g;
+
+        l <= temp_l;
+
+        e <= temp_e;
+
+        err <= temp_err;
+
+    end
+
+   end
+
+    always@(posedge clk or posedge rst)
+
+    begin
+
+    if(rst)
+
+    begin
+
+     temp_res <= {2*width{1'b0}};
+
+     temp_cout <= 1'b0;
+
+     temp_oflow <= 1'b0;
+
+     temp_g <= 1'b0;
+
+     temp_e <= 1'b0;
+
+     temp_l <= 1'b0;
+
+     temp_err <= 1'b0;
+
+    end
+
+    else begin
+
+    //default
+
+     temp_res <= {2*width{1'b0}};
+
+     temp_cout <= 1'b0;
+
+     temp_oflow <= 1'b0;
+
+     temp_g <= 1'b0;
+
+     temp_e <= 1'b0;
+
+     temp_l <= 1'b0;
+
+     temp_err <= 1'b0;
+
+    if(ce)
+
+     begin
+
+     if(mode) begin
+
+     case(cmd)
+
+      4'd0: begin
+
+           if(inp_valid==3)begin
+
+           {temp_cout,temp_res[width-1:0]}<=opa+opb;
+
+           temp_res[2*width-1:width] <= 0;
+
+           end
+
+           else
+
+           temp_err<=1'b1;
+
+          end
+
+      4'd1:begin
+
+         if(inp_valid==3)begin
+
+           temp_res[width-1:0]<=opa-opb; 
+
+            temp_res[2*width-1:width] <= 0;
+
+           if(opa<opb)                          ///////////////////////////////////////////////////////
+
+             temp_oflow<=1'b1;
+
+           else
+
+             temp_oflow<=1'b0;  
+
+           end
+
+           else
+
+           temp_err<=1'b1;
+
+        end  
+
+     4'd2:begin
+
+         if(inp_valid==3) begin
+
+           {temp_cout,temp_res[width-1:0]}<=opa+opb+cin;
+
+           temp_res[2*width-1:width] <= 0;
+
+           end
+
+            else
+
+           temp_err<=1'b1;
+
+        end
+
+     4'd3:begin
+
+         if(inp_valid==3)begin
+
+           temp_res[width-1:0]<=opa-opb-cin;                      /////////////////////////////////////////
+
+            temp_res[2*width-1:width] <= 0;
+
+             if(opa<opb)                          ///////////////////////////////////////////////////////
+
+             temp_oflow<=1'b1;
+
+           else
+
+             temp_oflow<=1'b0;  
+
+            end 
+
+           else
+
+           temp_err<=1'b1;
+
+        end
+
+     4'd4:begin
+
+         if(inp_valid==1||inp_valid==3) begin
+
+           temp_res[width-1:0]<=opa+1;
+
+           temp_res[2*width-1:width] <= 0;
+
+           end
+
+            else
+
+           temp_err<=1'b1;
+
+        end
+
+     4'd5:begin
+
+         if(inp_valid==1||inp_valid==3)begin 
+
+           temp_res[width-1:0]<=opa-1;
+
+           temp_res[2*width-1:width] <= 0;
+
+           end
+
+            else
+
+           temp_err<=1'b1;
+
+        end 
+
+    4'd6:begin
+
+         if(inp_valid==2||inp_valid==3)begin
+
+           temp_res[width-1:0]<=opb+1;
+
+           temp_res[2*width-1:width] <= 0;
+
+           end
+
+            else
+
+           temp_err<=1'b1;
+
+        end 
+
+    4'd7:begin
+
+         if(inp_valid==2||inp_valid==3) begin
+
+           temp_res[width-1:0]<=opb-1;
+
+           temp_res[2*width-1:width] <= 0;
+
+           end
+
+            else
+
+           temp_err<=1'b1;
+
+        end 
+
+    4'd8:begin
+
+         if(inp_valid==3)
+
+           begin
+
+                    if (opa == opb) begin
+
+                        temp_g <= 0; temp_l <= 0; temp_e <= 1;
+
+                    end else if (opa > opb) begin
+
+                         temp_g <= 1; temp_l <= 0; temp_e <= 0;
+
+                    end else begin
+
+                          temp_g <= 0; temp_l <= 1; temp_e <= 0;
+
+                    end
+
                 end
 
-                case(inp_valid)
+             else
 
-                    2'b00: begin
-                      temp <= {2*N{1'b0}};
-                      res<=temp;
-                        oflow <= 1'b0;
-                     cout <= 1'b0;
-                      g <= 1'b0;
-                     e <= 1'b0;
-                     l <= 1'b0;
-                      err <= 1'b1;
-                    end
+           temp_err<=1'b1;   
 
-                    2'b01: begin
-                     oflow <= 1'b0;
-                     cout <= 1'b0;
-                      g <= 1'b0;
-                     e <= 1'b0;
-                     l <= 1'b0;
-                      err <= 1'b0;
-                        case(cmd)
-                            4'd4:begin temp <= opa + 1'b1; cout<=1'b0; res<=temp; end
-                            4'd5:begin temp <= opa - 1'b1;cout<=1'b0;res<=temp;  end
-                            default: begin temp <= {2*N{1'b0}}; err<=1'b1; res<=temp;end
-                        endcase
-                    end
+           end                
 
-                    2'b10: begin
-                     oflow <= 1'b0;
-                     cout <= 1'b0;
-                     g <= 1'b0;
-                     e <= 1'b0;
-                     l <= 1'b0;
-                     err <= 1'b0;
-                        case(cmd)
-                            4'd6:begin temp <= opb + 1'b1;cout<=1'b0;res<=temp; end
-                            4'd7:begin temp <= opb - 1'b1;res<=temp; end
-                            default:  begin temp <= {2*N{1'b0}}; err<=1'b1;res<=temp; end
-                        endcase
-                    end
+     4'd9:begin
 
-                    2'b11: begin
-                     temp <= {2*N{1'b0}};
-                     res<=temp;
-                     oflow <= 1'b0;
-                     cout <= 1'b0;
-                     g <= 1'b0;
-                     e <= 1'b0;
-                    l <= 1'b0;
-                     err <= 1'b0;
-                        case(cmd)
+          if(inp_valid==3) begin 
 
-                            4'd0: begin
-                               {cout, temp[N-1:0]} <= opa + opb;
-                               temp[2*N-1:N]={N-1{1'b0}};
-                               res<=temp;
-                            end
+           if(count == 0) begin
 
-                            4'd1: begin
-                                temp <= opa - opb;
-                                oflow <= (opa < opb) ? 1'b1 : 1'b0;
-                                res<=temp;
-                            end
+              opa_1 <= opa;
 
-                            4'd2: begin
-                                {cout,temp[N-1:0]} <= opa + opb + cin;
-                                temp[2*N-1:N]={N-1{1'b0}};
-                                res<=temp;
-                            end
-                            
-                            4'd3: begin
-                                temp<= opa - opb - cin;
-                                oflow <= (opa < opb) ? 1'b1 : 1'b0;
-                                res<=temp;
-                            end
-                            
-                            4'd4:begin temp <= opa + 1'b1; cout<=1'b0; res<=temp; end
-                            4'd5:begin temp <= opa - 1'b1;cout<=1'b0;res<=temp;  end
-                            4'd6:begin temp <= opb + 1'b1;cout<=1'b0;res<=temp; end
-                            4'd7:begin temp <= opb - 1'b1;res<=temp; end
-                            4'd8: begin
-                                if(opa > opb) begin
-                                    g <= 1'b1;
-                                    e <= 1'b0;
-                                    l <= 1'b0;
-                                end
-                                else if(opa == opb) begin
-                                    g <= 1'b0;
-                                    e <= 1'b1;
-                                    l <= 1'b0;
-                                end
-                                else begin
-                                    g <= 1'b0;
-                                    e <= 1'b0;
-                                    l <= 1'b1;
-                                end
-                                
-                            end
+              opb_1 <= opb;
 
-                            4'd9: begin
+              temp_res<= {2*width{1'bx}};
 
-                                if(mode != 1'b1 || cmd != 4'd9) begin
-                                    cnt <= 2'b00;
-                                    temp <= {2*N{1'b0}};
-                                    res<=temp;
-                                end
+          end
 
-                                else begin
+          if(count==1)
 
-                                    if(cnt == 2'b00) begin
-                                        tempa <= opa;
-                                        tempb <= opb;
-                                        cnt <= cnt + 1'b1;
-                                        temp <= {2*N{1'b0}};
-                                        res<=temp;
-                                    end
-//                                   else if(cnt==2'b10 && rep==1'b1)
-//                                   begin
-//                                      cnt<=2'b01;
-//                                   end
-                                   else if(cnt == 2'b01) begin
-                                        cnt <= cnt + 1'b1;
-                                        temp <= {2*N{1'b0}};
-                                        res<=temp;
-                                    end
+          temp_res<= (opa_1+1)*(opb_1+1);                                     ///////////////////////////////////
 
-                                    else if(cnt == 2'b10) begin
-                                        temp <= (tempa + 1'b1) * (tempb + 1'b1);
-                                        res<=temp;
-                                       // cnt <= 2'b00;
-                                        if(cmd==4'd9 )
-                                           begin
-                                            //rep=1'b1;
-                                            tempa<=opa;
-                                            tempb<=opb; 
-                                            cnt<=2'b01; 
-                                           end
-                                         else
-                                         cnt<=2'b00;  
-                                    end
+//            if(count==2)
 
-                                end
-                                cout<=0;
-                            end
+//           temp_res<=temp; 
 
-                            4'd10: begin
-                             if(mode != 1'b1 || cmd != 4'd10) begin
-                                    cnt <= 2'b00;
-                                    temp <= {2*N{1'b0}};
-                                    res<=temp;
-                                end
+           end
 
-                                else begin
+            else
 
-                                    if(cnt == 2'b00) begin
-                                        tempa <= opa;
-                                        tempb <= opb;
-                                        cnt <= cnt + 1'b1;
-                                        temp <= {2*N{1'b0}};
-                                        res<=temp;
-                                    end
+           temp_err<=1'b1;
 
-                                   else if(cnt == 2'b01) begin
-                                        cnt <= cnt + 1'b1;
-                                        temp <= {2*N{1'b0}};
-                                        res<=temp;
-                                    end
+          end  
 
-                                    else if(cnt == 2'b10) begin
-                                        temp <= (tempa << 1) * tempb;
-                                        res<=temp;
-                                        
-                                        if(cmd==4'd10)
-                                           begin
-                                            tempa<=opa;
-                                            tempb<=opb; 
-                                            cnt<=2'b01; 
-                                           end
-                                        else
-                                         cnt<=2'b00;   
-                                    end
+     4'd10:begin
 
-                                end
-                                cout<=0;
-                              //  res <= (opa << 1) * opb;
-                           
-                            end
+           if(inp_valid==3)  begin                  ////////////////////////////////////
 
-                            4'd11: begin
-                                temp <= $signed(opa) + $signed(opb);
-                                res<=temp;
-                                oflow <= (opa[N-1] == opb[N-1]) && (opa[N-1] != res[N-1]);
+            if(count_1 == 0) begin
 
-                                if(opa > opb) begin
-                                    g <= 1'b1;
-                                    e <= 1'b0;
-                                    l <= 1'b0;
-                                end
-                                else if(opa == opb) begin
-                                    g <= 1'b0;
-                                    e <= 1'b1;
-                                    l <= 1'b0;
-                                end
-                                else begin
-                                    g <= 1'b0;
-                                    e <= 1'b0;
-                                    l <= 1'b1;
-                                end
-                              
-                            end
+              opa_1 <= opa;
 
-                            4'd12: begin
-                                temp <= $signed(opa) - $signed(opb);
-                                res<=temp;
-                                oflow <= (opa[N-1] != opb[N-1]) && (opa[N-1] != res[N-1]);
+              opb_1 <= opb;
 
-                                if($signed(opa) > $signed(opb)) begin
-                                    g <= 1'b1;
-                                    e <= 1'b0;
-                                    l <= 1'b0;
-                                end
-                                else if($signed(opa) == $signed(opb)) begin
-                                    g <= 1'b0;
-                                    e <= 1'b1;
-                                    l <= 1'b0;
-                                end
-                                else begin
-                                    g <= 1'b0;
-                                    e <= 1'b0;
-                                    l <= 1'b1;
-                                end
-                            end
+               temp_res<= {2*width{1'bx}};
 
-                            default:  begin temp <= {2*N{1'b0}}; err<=1'b1;res<=temp; end
+          end
 
-                        endcase
-                    end
+          if(count_1==1)
 
-                    default:  begin temp <= {2*N{1'b0}}; err<=1'b1; res<=temp;end
+          temp_res<=(opa_1<<1)*opb_1;                                     ///////////////////////////////////
 
-                endcase
-             
-            end
+//           if(count_1==2)
+
+//           temp_res<=temp; 
+
+           end  
+
+            else
+
+           temp_err<=1'b1;
+
+          end  
+
+    4'd11:begin
+
+            if(inp_valid == 3) begin
+
+               sum = a + b;
+
+               temp_res[width-1:0] <= sum[width-1:0];
+
+               temp_res[2*width-1:width] <= 0;
+
+               temp_cout <= sum[width];
+ 
+            temp_oflow <= (a[width-1] == b[width-1]) && (sum[width-1] != a[width-1]);
+ 
+           if (sum == 0) begin
+
+               temp_g <= 0; temp_l <= 0; temp_e <= 1;
+
+            end 
+
+            else if (sum > 0) begin
+
+               temp_g <= 1; temp_l <= 0; temp_e <= 0;
+
+            end 
 
             else begin
 
-                temp <= {2*N{1'b0}};
-                res<=temp;
-                oflow <= 1'b0;
-                cout <= 1'b0;
-                g <= 1'b0;
-                e <= 1'b0;
-                l <= 1'b0;
-                err <= 1'b0;
+               temp_g <= 0; temp_l <= 1; temp_e <= 0;
 
-                case(inp_valid)
+            end
 
-                    2'b00: begin
-                 temp <= {2*N{1'b0}};
-                 res<=temp;
-                oflow <= 1'b0;
-                cout <= 1'b0;
-                g <= 1'b0;
-                e <= 1'b0;
-                l <= 1'b0;
-                err <= 1'b1;
-                    end
+           end
 
-                    2'b01: begin
-                        temp <= {2*N{1'b0}};
-                        res<=temp;
-                        oflow <= 1'b0;
-                cout <= 1'b0;
-                g <= 1'b0;
-                e <= 1'b0;
-                l <= 1'b0;
-                err <= 1'b0;
-                        case(cmd)
-                            4'd6: begin temp <={{N{1'b0}},~opa};res<=temp; end
-                            4'd8:begin temp <= (opa >> 1);res<=temp; end
-                            4'd9:begin temp <= (opa << 1);res<=temp; end
-                            default:  begin temp <= {2*N{1'b0}}; err<=1'b1;res<=temp; end
-                        endcase
-                    end
+            else
 
-                    2'b10: begin
-                temp <= {2*N{1'b0}};
-                res<=temp;
-                oflow <= 1'b0;
-                cout <= 1'b0;
-                g <= 1'b0;
-                e <= 1'b0;
-                l <= 1'b0;
-                err <= 1'b0;
-                        case(cmd)
-                           4'd6: begin temp <={{N{1'b0}},~opa};res<=temp; end
-                            4'd8:begin temp <= (opa >> 1);res<=temp; end
-                            4'd9:begin temp <= (opa << 1);res<=temp; end
-                            default: begin temp <= {2*N{1'b0}}; err<=1'b1;res<=temp; end
-                        endcase
-                    end
+           temp_err<=1'b1;
 
-2'b11: begin
-    temp <= {2*N{1'b0}};
-    res  <= temp;
+           end      
 
-    oflow <= 1'b0;
-    cout  <= 1'b0;
-    g     <= 1'b0;
-    e     <= 1'b0;
-    l     <= 1'b0;
-    err   <= 1'b0;
+    4'd12:begin
+
+          if(inp_valid == 3) begin
+
+              diff = a - b;
+
+              temp_res[width-1:0] <= diff[width-1:0];
+
+              temp_res[2*width-1:width] <= 0;
+
+              temp_cout <= diff[width];
+
+              temp_oflow <= (a[width-1] != b[width-1]) && (diff[width-1] != a[width-1]);
+
+         if (diff == 0) begin
+
+           temp_g <= 0; temp_l <= 0; temp_e <= 1;
+
+         end
+
+         else if (diff > 0) begin
+
+           temp_g <= 1; temp_l <= 0; temp_e <= 0;
+
+         end 
+
+         else begin
+
+          temp_g <= 0; temp_l <= 1; temp_e <= 0;
+
+         end
+
+         end
+
+          else
+
+           temp_err<=1'b1;
+
+          end 
+
+     default:begin
+
+             temp_res <= {2*width{1'b0}};
+
+             temp_cout <= 1'b0;
+
+             temp_oflow <= 1'b0;
+
+             temp_g <= 1'b0;
+
+             temp_e <= 1'b0;
+
+             temp_l <= 1'b0;
+
+             temp_err <= 1'b0;  
+
+             end                         
+
+        endcase
+
+     end
+
+  else begin
 
     case(cmd)
 
-        4'd0: begin
-            temp <= {{N{1'b0}}, opa & opb};
-            res  <= temp;
-        end
+    4'd0:begin
 
-        4'd1: begin
-            temp <= {{N{1'b0}}, ~(opa & opb)};
-            res  <= temp;
-        end
+         if(inp_valid==3)begin
 
-        4'd2: begin
-            temp <= {{N{1'b0}}, (opa | opb)};
-            res  <= temp;
-        end
+         temp_res[width-1:0]<=opa&opb;
 
-        4'd3: begin
-            temp <= {{N{1'b0}}, ~(opa | opb)};
-            res  <= temp;
-        end
+          temp_res[2*width-1:width] <= 0;
 
-        4'd4: begin
-            temp <= {{N{1'b0}}, (opa ^ opb)};
-            res  <= temp;
-        end
+           end
 
-        4'd5: begin
-            temp <= {{N{1'b0}}, ~(opa ^ opb)};
-            res  <= temp;
-        end
-        4'd6: begin temp <={{N{1'b0}},~opa};res<=temp; end
-        4'd8:begin temp <= (opa >> 1);res<=temp; end
-        4'd9:begin temp <= (opa << 1);res<=temp; end
-       4'd6: begin temp <={{N{1'b0}},~opa};res<=temp; end
-        4'd8:begin temp <= (opa >> 1);res<=temp; end
-        4'd9:begin temp <= (opa << 1);res<=temp; end
-        4'd12: begin
-            err <= (|opb[7:4]) ? 1'b1 : 1'b0;
+            else
 
-            case(opb[2:0])
+           temp_err<=1'b1;
 
-                3'b000: begin
-                    temp <= opa;
-                    res  <= temp;
-                end
+         end 
 
-                3'b001: begin
-                    temp <= {{N{1'b0}}, opa[6:0], opa[7]};
-                    res  <= temp;
-                end
+    4'd1:begin
 
-                3'b010: begin
-                    temp <= {{N{1'b0}}, opa[5:0], opa[7:6]};
-                    res  <= temp;
-                end
+         if(inp_valid==3)begin
 
-                3'b011: begin
-                    temp <= {{N{1'b0}}, opa[4:0], opa[7:5]};
-                    res  <= temp;
-                end
+         temp_res[width-1:0]<=~(opa&opb);
 
-                3'b100: begin
-                    temp <= {{N{1'b0}}, opa[3:0], opa[7:4]};
-                    res  <= temp;
-                end
+          temp_res[2*width-1:width] <= 0;
 
-                3'b101: begin
-                    temp <= {{N{1'b0}}, opa[2:0], opa[7:3]};
-                    res  <= temp;
-                end
+           end
 
-                3'b110: begin
-                    temp <= {{N{1'b0}}, opa[1:0], opa[7:2]};
-                    res  <= temp;
-                end
+            else
 
-                3'b111: begin
-                    temp <= {{N{1'b0}}, opa[0], opa[7:1]};
-                    res  <= temp;
-                end
+           temp_err<=1'b1;
 
-                default: begin
-                    temp <= {2*N{1'b0}};
-                    res  <= temp;
-                end
-            endcase
-        end
+         end
 
-        4'd13: begin
-            err <= (|opb[7:4]) ? 1'b1 : 1'b0;
+    4'd2:begin
 
-            case(opb[2:0])
+         if(inp_valid==3)begin
 
-                3'b000: begin
-                    temp <= opa;
-                    res  <= temp;
-                end
+         temp_res[width-1:0]<=opa|opb;
 
-                3'b001: begin
-                    temp <= {{N{1'b0}}, opa[0], opa[7:1]};
-                    res  <= temp;
-                end
+          temp_res[2*width-1:width] <= 0;
 
-                3'b010: begin
-                    temp <= {{N{1'b0}}, opa[1:0], opa[7:2]};
-                    res  <= temp;
-                end
+           end
 
-                3'b011: begin
-                    temp <= {{N{1'b0}}, opa[2:0], opa[7:3]};
-                    res  <= temp;
-                end
+            else
 
-                3'b100: begin
-                    temp <= {{N{1'b0}}, opa[3:0], opa[7:4]};
-                    res  <= temp;
-                end
+           temp_err<=1'b1;
 
-                3'b101: begin
-                    temp <= {{N{1'b0}}, opa[4:0], opa[7:5]};
-                    res  <= temp;
-                end
+         end
 
-                3'b110: begin
-                    temp <= {{N{1'b0}}, opa[5:0], opa[7:6]};
-                    res  <= temp;
-                end
+    4'd3:begin
 
-                3'b111: begin
-                    temp <= {{N{1'b0}}, opa[6:0], opa[7]};
-                    res  <= temp;
-                end
+         if(inp_valid==3)begin
 
-                default: begin
-                    temp <= {2*N{1'b0}};
-                    res  <= temp;
-                    err  <= 1'b1;
-                end
-            endcase
-        end
+         temp_res[width-1:0]<=~(opa|opb);
 
-        default: begin
-            temp <= {2*N{1'b0}};
-            res  <= temp;
-            err  <= 1'b1;
-        end
+          temp_res[2*width-1:width] <= 0;
 
+           end
 
-                        endcase
-                    end
-                endcase
-            end
-        end
+            else
+
+           temp_err<=1'b1;
+
+         end
+
+    4'd4:begin
+
+         if(inp_valid==3)begin
+
+         temp_res[width-1:0]<=opa^opb;
+
+          temp_res[2*width-1:width] <= 0;
+
+           end
+
+            else
+
+           temp_err<=1'b1;
+
+         end
+
+    4'd5:begin
+
+         if(inp_valid==3)begin
+
+         temp_res[width-1:0]<=~(opa^opb);
+
+          temp_res[2*width-1:width] <= 0;
+
+           end
+
+            else
+
+           temp_err<=1'b1;
+
+         end 
+
+    4'd6:begin
+
+         if(inp_valid==1||inp_valid==3)begin
+
+         temp_res[width-1:0]<=~opa;
+
+          temp_res[2*width-1:width] <= 0;
+
+           end
+
+            else
+
+           temp_err<=1'b1;
+
+         end 
+
+    4'd7:begin
+
+         if(inp_valid==2||inp_valid==3)begin
+
+         temp_res[width-1:0]<=~opb;
+
+          temp_res[2*width-1:width] <= 0;
+
+           end
+
+            else
+
+           temp_err<=1'b1;
+
+         end 
+
+    4'd8:begin
+
+         if(inp_valid==1||inp_valid==3)begin
+
+         temp_res[width-1:0]<=(opa>>1);
+
+          temp_res[2*width-1:width] <= 0;
+
+           end
+
+            else
+
+           temp_err<=1'b1;
+
+         end           
+
+    4'd9:begin
+
+         if(inp_valid==1||inp_valid==3)begin
+
+         temp_res[width-1:0]<=(opa<<1);
+
+          temp_res[2*width-1:width] <= 0;
+
+           end
+
+            else
+
+           temp_err<=1'b1;
+
+         end 
+
+    4'd10:begin
+
+         if(inp_valid==2||inp_valid==3)begin
+
+         temp_res[width-1:0]<=(opb>>1);
+
+          temp_res[2*width-1:width] <= 0;
+
+           end
+
+            else
+
+           temp_err<=1'b1;
+
+         end 
+
+    4'd11:begin
+
+         if(inp_valid==2||inp_valid==3)begin
+
+         temp_res[width-1:0]<=(opb<<1);
+
+          temp_res[2*width-1:width] <= 0;
+
+           end
+
+            else
+
+           temp_err<=1'b1;
+
+         end           
+
+    4'd12:begin
+
+          if(inp_valid==3) 
+
+           begin
+
+            temp_res[width-1:0]<=(opa<<opb[$clog2(width)-1:0])|(opa>>(width-opb[$clog2(width)-1:0]));
+
+             temp_res[2*width-1:width] <= 0;
+
+            temp_err<=|opb[width-1:($clog2(width)+1)];
+
+          end
+
+           else
+
+           temp_err<=1'b1;
+
+          end 
+
+    4'd13:begin
+
+          if(inp_valid==3) 
+
+           begin
+
+            temp_res[width-1:0]<=(opa>>opb[$clog2(width)-1:0])|(opa<<(width-opb[$clog2(width)-1:0]));
+
+             temp_res[2*width-1:width] <= 0;
+
+            temp_err<=|opb[width-1:($clog2(width)+1)];
+
+          end
+
+           else
+
+           temp_err<=1'b1;
+
+          end
+
+     default:begin
+
+             temp_res <= {2*width{1'b0}};
+
+             temp_cout <= 1'b0;
+
+             temp_oflow <= 1'b0;
+
+             temp_g <= 1'b0;
+
+             temp_e <= 1'b0;
+
+             temp_l <= 1'b0;
+
+             temp_err <= 1'b0;  
+
+            end                                
+
+    endcase
+
+  end    
+
     end
-end
+
+    end
+
+    end
+
+assign a=opa;
+
+assign b=opb;
 
 endmodule
 
+ 
